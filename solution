@@ -1,0 +1,77 @@
+QUESTION .
+=============
+Create control group.clone the project from git link.
+	control group name is cgroup.
+	all files owned user or group for the control group: admin
+	controllers - cpuacct,memory,pid
+	playbook name vim.yml which will install a vim application.
+	playbook should pint the time.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5. Resource limits -
+Clone the  git repository
+Perform the following tasks inside this repository
+--> There is already one updated playbook in the repo -->install_vim.yml
+--> Create a playbook resource.yml and the playbook should do the following tasks, this tasks should be executed in localhost only
+	--> install cgroup, where student user is the owner and group owner with relative resource named: ex447_stats
+	--> relative resource should be assigned to capture the information of 
+		--> pids
+		--> cpuacct
+		--> memory 
+--> once the cgroup is created , execute the control group along with execution of install_vim.yml which provides cpuacct,memory and pids of the playbook execution.
+--> Make all necessary modification in the ansible configuration file.
+
+Once all configuration file and playbook is created and executed, upload and commit the latest updates to remote repository
+
+SOLUTION :
+==================
+
+# cd /home/admin/git-repos
+# git clone <git url>
+# cd cgroup-project
+
+# sudo yum install libcgroup-tools -y
+
+# ansible-doc -t ##press enter then from these you can see callback keyword
+# ansible-doc -t callback -l
+#  ansible-doc -t callback cgroup_perf_recap	( to get cgcreate command FROM NOTES SECTION )
+
+
+==================================================================================================================
+
+
+# vi  ansible.cfg
+-------------------------
+[defaults]
+callback_whitelist = timer, cgroup_perf_recap    ##cat /etc/ansible/ansible.cfg   --> we this is from ansible.cgf file also
+[callback_cgroup_perf_recap]
+control_group=ex447_stats 	#name of cgroup 
+
+
+
+
+[ansible@ansible cgroup]$ cat resource.yml 
+---
+- name: controll groups
+  hosts: localhost
+  tasks:
+    - name: creating the cgroup
+      shell: cgcreate -a rohit:rohit -t rohit:rohit -g cpuacct,memory,pids:ex447_stats 
+      
+      
+      
+      
+[ansible@ansible cgroup]$ cat execute.yml 
+---
+- name: controll groups
+  hosts: localhost
+  tasks:
+    - name: execution
+      command: cgexec -g cpuacct,memory,pids:ex447_stats ansible-playbook resource.yml  ## man cgexec  --- to get the command
+      register: output
+    - debug:
+        var: output
+
+===================================================================================================================
+
+		
